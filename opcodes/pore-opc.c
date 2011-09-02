@@ -29,13 +29,13 @@ const struct pore_reg pore_register[NUM_PORE_REGS] = {
   { "ctr"   },
   { "d0"    },
   { "d1"    },
-  { "mrr"   },
-  { "tbar"  },
+  { "emr"   },
+  { "?"     },
   { "etr"   },
   { "sprg0" },
-  { "i2c0"  },
-  { "i2c1"  },
-  { "i2c2"  },
+  { "?"     },
+  { "?"     },
+  { "?"     },
   { "pc"    },
   { "ifr"   },
 };
@@ -48,32 +48,30 @@ const struct pore_reg pore_hw_register[NUM_PORE_REGS] = {
   { "scratch0"        },
   { "scratch1"        },
   { "scratch2"        },
-  { "memory_reloc"    },
-  { "table_base_addr" },
+  { "error_mask"      },
+  { "?"               },
   { "exe_trigger"     },
   { "data0"           },
-  { "i2c_e0_param"    },
-  { "i2c_e1_param"    },
-  { "i2c_e2_param"    },
+  { "?"               },
+  { "?"               },
+  { "?"               },
   { "pc"              },
   { "ibuf_id"         },
 };
 
-#define LI_REG_MASK \
-  ((1 << P0) | (1 << P1) | (1 << A0) | (1 << A1) | (1 << CTR)		\
-   | (1 << D0) | (1 << D1) | (1 << TBAR)				\
-   | (1 << I2C0) | (1 << I2C1) | (1 << I2C2))
-#define LS_REG_MASK \
-  ((1 << P0) | (1 << P1) | (1 << A0) | (1 << A1) | (1 << CTR)		\
+#define LI_REG_MASK                                           \
+  ((1 << A0) | (1 << A1) | (1 << CTR) | (1 << D0) | (1 << D1))
+#define LS_REG_MASK                                           \
+  ((1 << P0) | (1 << P1) | (1 << A0) | (1 << A1) | (1 << CTR) \
    | (1 << D0) | (1 << D1))
-#define TCOPY_REG_MASK \
-  ((1 << P0) | (1 << P1) | (1 << A0) | (1 << A1) | (1 << CTR)		\
-   | (1 << D0) | (1 << D1) | (1 << TBAR) | (1 << SPRG0)			\
-   | (1 << I2C0) | (1 << I2C1) | (1 << I2C2) | (1 << PC))
-#define SCOPY_REG_MASK \
-  ((1 << P0) | (1 << P1) | (1 << A0) | (1 << A1) | (1 << CTR)		\
-   | (1 << D0) | (1 << D1) | (1 << TBAR) | (1 << ETR) | (1 << SPRG0)	\
-   | (1 << I2C0) | (1 << I2C1) | (1 << I2C2) | (1 << PC) | (1 << IFR))
+#define TCOPY_REG_MASK                                        \
+  ((1 << P0) | (1 << P1) | (1 << A0) | (1 << A1) | (1 << CTR) \
+  | (1 << D0) | (1 << D1) | (1 << SPRG0)		      \
+  | (1 << PC) | (1 << EMR) | (1 << ETR))
+#define SCOPY_REG_MASK                                        \
+  ((1 << P0) | (1 << P1) | (1 << A0) | (1 << A1) | (1 << CTR) \
+  | (1 << D0) | (1 << D1) | (1 << SPRG0)                      \
+  | (1 << PC) | (1 << IFR) | (1 << EMR) | (1 << ETR))
 
 const struct pore_operand pore_operand_types[NUM_PORE_OPERAND_TYPES] = {
   { 0, 0, {0} },
@@ -88,7 +86,7 @@ const struct pore_operand pore_operand_types[NUM_PORE_OPERAND_TYPES] = {
   { PORE_REG, 20, {LI_REG_MASK} },
 
 #define tLIA tLI + 1
-  { PORE_REG, 20, {(1 << D0) | (1 << D1) | (1 << A0) | (1 << A1) | (1 << TBAR)} },
+  { PORE_REG, 20, {(1 << D0) | (1 << D1) | (1 << A0) | (1 << A1)} },
 
 #define tLS tLIA + 1
   { PORE_REG, 20, {LS_REG_MASK} },
@@ -174,11 +172,10 @@ const struct pore_operand pore_operand_types[NUM_PORE_OPERAND_TYPES] = {
    the operands.  */
 
 const struct pore_opcode pore_opcodes[] = {
-  { 0x00 * 2, "nop",       {}                      },
   { 0x01 * 2, "waits",     {ImU24Z}                },
   { 0x01 * 2, "halt",      {}                      },
   { 0x02 * 2, "trap",      {}                      },
-  { 0x0f * 2, "hooks",     {ImU24}                 },
+  { 0x0f * 2, "nop",       {}                      },
   { 0x10 * 2, "bra",       {ImPC24}                },
   { 0x12 * 2, "braz",      {tD01C,  ImPC20}        },
   { 0x13 * 2, "branz",     {tD01C,  ImPC20}        },
@@ -202,6 +199,7 @@ const struct pore_opcode pore_opcodes[] = {
   { 0x36 * 2, "ld",        {iD01,   ImA24}         },
   { 0x39 * 2, "std",       {iD01,   ImA24}         },
   { 0x3a * 2, "std",       {iD01,   ImA24}         },
+  { 0x4f * 2, "hooki",     {ImU24,  Im64}          },
   { 0x51 * 2, "braia",     {ImU16,  Im32}          },
   { 0x56 * 2, "cmpibraeq", {optD0,  ImPC24, Im64}  },
   { 0x57 * 2, "cmpibrane", {optD0,  ImPC24, Im64}  },
@@ -227,11 +225,11 @@ const int num_pore_opcodes = (sizeof (pore_opcodes)
    the disassembler so doesn't need to be sorted.  */
 const struct pore_opcode pore_hw_opcodes[] = {
   { 0x01 * 2, "wait",     {ImU24}                 },
-  { 0x0f * 2, "hook",     {ImU24}                 },
   { 0x24 * 2, "addi",     {tLS,    ImS16}         },
   { 0x28 * 2, "subi",     {tLS,    ImS16}         },
   { 0x2c * 2, "copy",     {tCopy,  sCopy}         },
   { 0x2e * 2, "rol",      {tD01,   sD01,   RotM}  },
+  { 0x4f * 2, "hook",     {ImU24,  Im64}          },
   { 0x51 * 2, "brai",     {ImU16,  Im32}          },
   { 0x56 * 2, "cmpbra",   {ImPC24, Im64}          },
   { 0x57 * 2, "cmpnbra",  {ImPC24, Im64}          },

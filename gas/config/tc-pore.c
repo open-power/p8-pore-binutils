@@ -104,15 +104,21 @@ md_begin (void)
   /* Predefine register symbols, both lowercase and uppercase versions.  */
   do
     for (i = 0; i < NUM_PORE_REGS; i++)
-      local_symbol_make (pore_register[i].name,
-			 &bfd_abs_section, i, &zero_address_frag);
+        if (strcmp(pore_register[i].name,"?") != 0) 
+          {
+            local_symbol_make (pore_register[i].name,
+                               &bfd_abs_section, i, &zero_address_frag);
+          }
   while ((symbols_case_sensitive ^= 1) == 0);
 
   if (hardware)
     do
       for (i = 0; i < NUM_PORE_REGS; i++)
-	local_symbol_make (pore_hw_register[i].name,
-			   &bfd_abs_section, i, &zero_address_frag);
+        if (strcmp(pore_hw_register[i].name,"?") != 0) 
+            {
+              local_symbol_make (pore_hw_register[i].name,
+                                 &bfd_abs_section, i, &zero_address_frag);
+            }
     while ((symbols_case_sensitive ^= 1) == 0);
 }
 
