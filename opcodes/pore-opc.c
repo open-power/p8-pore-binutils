@@ -214,6 +214,7 @@ const struct pore_opcode pore_opcodes[] = {
   { 0x75 * 2, "bci",       {optD0,  ImA24,  Im64}  },
   { 0x77 * 2, "ldandi",    {iD01,   ImA24,  Im64}  },
   { 0x78 * 2, "sti",       {ImA24,  Im64}          },
+  { 0x78 * 2, "stia",      {ImA24,  ImU16,  Im32}  },
   { 0x7c * 2, "scand",     {ScanOP}                },
 };
 
