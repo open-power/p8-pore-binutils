@@ -148,9 +148,9 @@ const struct pore_operand pore_operand_types[NUM_PORE_OPERAND_TYPES] = {
   { PORE_REG | PORE_IMA24, -1, {(1 << P0) | (1 << P1) | (1 << A0) | (1 << A1)} },
 
 #define ScanUp ImA24Base + 1
-  { PORE_IMM, 24, {1} },
-#define ScanCap ScanUp + 1
   { PORE_IMM, 23, {1} },
+#define ScanCap ScanUp + 1
+  { PORE_IMM, 22, {1} },
 #define ScanLen ScanCap + 1
   { PORE_IMM, 0, {16} },
 #define ScanSel ScanLen + 1
