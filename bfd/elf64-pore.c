@@ -262,6 +262,21 @@ static reloc_howto_type pore_elf_howto_table[] = {
 	 0,
 	 0,
 	 FALSE),
+
+  /* A 16-bit relocation for PIB memory access */
+  HOWTO (R_PORE_PIBMEM,
+	 3,                    
+	 2,
+	 16,
+	 FALSE,
+	 0,
+	 complain_overflow_bitfield,
+	 bfd_elf_generic_reloc,
+	 "R_PORE_PIBMEM",
+	 FALSE,
+	 0,
+	 0xffff,
+	 FALSE),
 };
 
 static reloc_howto_type *
@@ -290,6 +305,7 @@ pore_elf_reloc_type_lookup (bfd *abfd ATTRIBUTE_UNUSED,
     case BFD_RELOC_PORE_PCREL24:	r = R_PORE_PCREL24;	break;
     case BFD_RELOC_PORE_PCREL20:	r = R_PORE_PCREL20;	break;
     case BFD_RELOC_PORE_FEATURE:	r = R_PORE_FEATURE;	break;
+    case BFD_RELOC_PORE_PIBMEM:         r = R_PORE_PIBMEM;	break;
     };
 
   return pore_elf_howto_table + r;

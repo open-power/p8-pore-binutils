@@ -45,6 +45,9 @@ const char FLT_CHARS[] = "dD";
 /* Whether gas should accept the hardware mnemonics and registers.  */
 static int hardware;
 
+/* The PIB port for PIB memory relocations. */
+static int pibmem_port = -1;
+
 const char *md_shortopts = "";
 
 struct option md_longopts[] =
@@ -59,11 +62,15 @@ static struct hash_control *opcode_hash;
 /* Whether emitted words should have insn parity bit.  */
 static void set_parity (int);
 
+/* Set the PIB port for PIB memory relocatable addresses */
+static void set_pibmem_port (int);
+
 /* The target specific pseudo-ops which we support.  */
 const pseudo_typeS md_pseudo_table[] =
 {
   { "parity", set_parity, PORE_FEATURE_PARITY_ON },
   { "noparity", set_parity, PORE_FEATURE_PARITY_OFF },
+  { "pibmem_port", set_pibmem_port, 0},
   { 0, 0, 0 }
 };
 
@@ -654,8 +661,36 @@ md_apply_fix (fixS *fix, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 		}
 	      else if (operand->u.bits == 22)
 		{
-		  /* ld, std, ldandi, bsi, bci, sti.  */
-		  r_type = BFD_RELOC_PORE_22;
+		  /* ld, std, ldandi, bsi, bci, sti. 
+                     
+                  Relocations against A0/A1 are currently disallowed. If they
+		  were allowed they would use r_type = BFD_RELOC_PORE_22.
+
+                  Relocations against P0/P1 are allowed if the assembly
+		  includes the .pibmem_port directive.  The PIB memory
+		  port is inserted into the instruction, and any byte offset
+		  previously inserted by the assembler is converted into a
+		  word offset - which really only affects the assembler
+		  listing. The programmer is responsible for the correct
+		  contents of P0/P1.
+                  */
+                    if (insn[0] & 0x00800000) {
+                        as_bad_where (fix->fx_file, fix->fx_line, 
+                                      _("Relocatable offsets for A0/A1 "
+                                        "are currently not supported"));
+                    } else if (pibmem_port < 0) {
+                        as_bad_where (fix->fx_file, fix->fx_line, 
+                                      _("Relocatable offsets for P0/P1 "
+                                        "are only allowed when the "
+                                        ".pibmem_port directive "
+                                        "is used"));
+                    } else {
+                        bfd_putb32 ((insn[0] & 0xfff00000) | 
+                                    (pibmem_port << 16) |
+                                    ((insn[0] & 0x7ffff) >> 3), 
+                                    where);
+                        r_type = BFD_RELOC_PORE_PIBMEM;
+                    }
 		}
 	      else if (operand->u.bits == 24)
 		{
@@ -730,4 +765,29 @@ set_parity (int on)
 {
   int where = frag_now_fix_octets ();
   fix_new (frag_now, where, 0, NULL, on, FALSE, BFD_RELOC_PORE_FEATURE);
+}
+
+/* Handle the .pibmem_port directive, which sets the PIB port for relocatable
+   PIB memory accesses.  This directive can only be used at most once per file
+   because its effect is only used during the fixup phase of assembly.
+
+   Arguably this relocation could/should be handled by the linker.  However
+   the linker is not otherwise memory-space aware, and we already have the
+   notion of memory-space aware assembly (e.g., the BRAA macro) so this
+   implementation is consistent with current usage. */
+static void
+set_pibmem_port (int ignore ATTRIBUTE_UNUSED)
+{
+    int port;
+
+    port = get_absolute_expression();
+    if ((pibmem_port >= 0) && (pibmem_port != port)) {
+        as_bad (_("The .pibmem_port directive was used multiple times "
+                  "with different arguments"));
+    } else if ((port < 0) || (port > 15)) {
+        as_bad(_("Illegal port number: must be in the range 0,...,15"));
+    } else {
+        pibmem_port = port;
+        demand_empty_rest_of_line();
+    }
 }
