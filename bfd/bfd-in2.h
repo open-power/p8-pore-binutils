@@ -3026,6 +3026,7 @@ relaxation.  */
   BFD_RELOC_PORE_PCREL24,
   BFD_RELOC_PORE_PCREL20,
   BFD_RELOC_PORE_FEATURE,
+  BFD_RELOC_PORE_PIBMEM,
 
 /* Power(rs6000) and PowerPC relocations.  */
   BFD_RELOC_PPC_B26,
