@@ -278,7 +278,7 @@ pore_operand_insert (uint32_t *insn,
 	    }
 	}
     }
-  if ((operand->flags & PORE_ROTATE) != 0)
+  /* if ((operand->flags & PORE_ROTATE) != 0)   // check removed since it is supported in new SBE
     {
       if (val != 1 && val != 4 && val != 8 && val != 16 && val != 32)
 	{
@@ -286,7 +286,7 @@ pore_operand_insert (uint32_t *insn,
 	  return;
 	}
     }
-  else if ((operand->flags & PORE_NON_ZERO) != 0)
+  else */ if ((operand->flags & PORE_NON_ZERO) != 0)
     {
       if (val == 0)
 	{
