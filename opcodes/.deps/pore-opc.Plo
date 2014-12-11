@@ -1,0 +1,3 @@
+pore-opc.lo pore-opc.o: pore-opc.c ../include/opcode/pore.h
+
+../include/opcode/pore.h:
