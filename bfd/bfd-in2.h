@@ -278,24 +278,22 @@ alent;
 
 typedef struct bfd_section *sec_ptr;
 
-#define bfd_get_section_name(bfd, ptr) ((ptr)->name + 0)
-#define bfd_get_section_vma(bfd, ptr) ((ptr)->vma + 0)
-#define bfd_get_section_lma(bfd, ptr) ((ptr)->lma + 0)
-#define bfd_get_section_alignment(bfd, ptr) ((ptr)->alignment_power + 0)
+#define bfd_get_section_name(bfd, ptr) ((void) bfd, (ptr)->name)
+#define bfd_get_section_vma(bfd, ptr) ((void) bfd, (ptr)->vma)
+#define bfd_get_section_lma(bfd, ptr) ((void) bfd, (ptr)->lma)
+#define bfd_get_section_alignment(bfd, ptr) ((void) bfd, \
+					     (ptr)->alignment_power)
 #define bfd_section_name(bfd, ptr) ((ptr)->name)
 #define bfd_section_size(bfd, ptr) ((ptr)->size)
 #define bfd_get_section_size(ptr) ((ptr)->size)
 #define bfd_section_vma(bfd, ptr) ((ptr)->vma)
 #define bfd_section_lma(bfd, ptr) ((ptr)->lma)
 #define bfd_section_alignment(bfd, ptr) ((ptr)->alignment_power)
-#define bfd_get_section_flags(bfd, ptr) ((ptr)->flags + 0)
-#define bfd_get_section_userdata(bfd, ptr) ((ptr)->userdata)
+#define bfd_get_section_flags(bfd, ptr) ((void) bfd, (ptr)->flags)
+#define bfd_get_section_userdata(bfd, ptr) ((void) bfd, (ptr)->userdata)
 
 #define bfd_is_com_section(ptr) (((ptr)->flags & SEC_IS_COMMON) != 0)
 
-#define bfd_set_section_vma(bfd, ptr, val) (((ptr)->vma = (ptr)->lma = (val)), ((ptr)->user_set_vma = TRUE), TRUE)
-#define bfd_set_section_alignment(bfd, ptr, val) (((ptr)->alignment_power = (val)),TRUE)
-#define bfd_set_section_userdata(bfd, ptr, val) (((ptr)->userdata = (val)),TRUE)
 /* Find the address one past the end of SEC.  */
 #define bfd_get_section_limit(bfd, sec) \
   (((bfd)->direction != write_direction && (sec)->rawsize != 0	\
@@ -520,8 +518,6 @@ extern void warn_deprecated (const char *, const char *, int, const char *);
 #define bfd_get_dynamic_symcount(abfd) ((abfd)->dynsymcount)
 
 #define bfd_get_symbol_leading_char(abfd) ((abfd)->xvec->symbol_leading_char)
-
-#define bfd_set_cacheable(abfd,bool) (((abfd)->cacheable = bool), TRUE)
 
 extern bfd_boolean bfd_cache_close
   (bfd *abfd);
@@ -980,7 +976,7 @@ bfd *bfd_openr (const char *filename, const char *target);
 
 bfd *bfd_fdopenr (const char *filename, const char *target, int fd);
 
-bfd *bfd_openstreamr (const char *, const char *, void *);
+bfd *bfd_openstreamr (const char * filename, const char * target, void * stream);
 
 bfd *bfd_openr_iovec (const char *filename, const char *target,
     void *(*open_func) (struct bfd *nbfd,
@@ -1541,6 +1537,32 @@ struct relax_table {
   /* Number of bytes to be deleted.  */
   int size;
 };
+
+/* Note: the following are provided as inline functions rather than macros
+   because not all callers use the return value.  A macro implementation
+   would use a comma expression, eg: "((ptr)->foo = val, TRUE)" and some
+   compilers will complain about comma expressions that have no effect.  */
+static inline bfd_boolean
+bfd_set_section_userdata (bfd * abfd ATTRIBUTE_UNUSED, asection * ptr, void * val)
+{
+  ptr->userdata = val;
+  return TRUE;
+}
+
+static inline bfd_boolean
+bfd_set_section_vma (bfd * abfd ATTRIBUTE_UNUSED, asection * ptr, bfd_vma val)
+{
+  ptr->vma = ptr->lma = val;
+  ptr->user_set_vma = TRUE;
+  return TRUE;
+}
+
+static inline bfd_boolean
+bfd_set_section_alignment (bfd * abfd ATTRIBUTE_UNUSED, asection * ptr, unsigned int val)
+{
+  ptr->alignment_power = val;
+  return TRUE;
+}
 
 /* These sections are global, and are managed by BFD.  The application
    and target back end are not permitted to change the values in
@@ -5501,6 +5523,14 @@ struct bfd
      this object.  Used by VMS linkers.  */
   unsigned int selective_search : 1;
 };
+
+/* See note beside bfd_set_section_userdata.  */
+static inline bfd_boolean
+bfd_set_cacheable (bfd * abfd, bfd_boolean val)
+{
+  abfd->cacheable = val;
+  return TRUE;
+}
 
 typedef enum bfd_error
 {

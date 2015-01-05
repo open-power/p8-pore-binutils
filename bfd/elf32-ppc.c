@@ -5800,7 +5800,8 @@ ppc_elf_size_dynamic_sections (bfd *output_bfd ATTRIBUTE_UNUSED,
 	{
 	  /* Strip these too.  */
 	}
-      else if (CONST_STRNEQ (bfd_get_section_name (dynobj, s), ".rela"))
+      else if (CONST_STRNEQ (bfd_get_section_name (htab->elf.dynobj, s),
+			     ".rela"))
 	{
 	  if (s->size != 0)
 	    {
@@ -7819,8 +7820,10 @@ ppc_elf_relocate_section (bfd *output_bfd,
 	      unresolved_reloc = TRUE;
 	      break;
 	    }
-	  BFD_ASSERT (strcmp (bfd_get_section_name (abfd, sec), ".got") == 0
-		      || strcmp (bfd_get_section_name (abfd, sec), ".cgot") == 0);
+	  BFD_ASSERT (strcmp (bfd_get_section_name (sec->owner, sec),
+			      ".got") == 0
+		      || strcmp (bfd_get_section_name (sec->owner, sec),
+				 ".cgot") == 0);
 
 	  addend -= sec->output_section->vma + sec->output_offset + 0x8000;
 	  break;
@@ -7870,7 +7873,7 @@ ppc_elf_relocate_section (bfd *output_bfd,
 	      }
 	    addend -= SYM_VAL (sda);
 
-	    name = bfd_get_section_name (abfd, sec->output_section);
+	    name = bfd_get_section_name (output_bfd, sec->output_section);
 	    if (! ((CONST_STRNEQ (name, ".sdata")
 		    && (name[6] == 0 || name[6] == '.'))
 		   || (CONST_STRNEQ (name, ".sbss")
@@ -7902,7 +7905,7 @@ ppc_elf_relocate_section (bfd *output_bfd,
 	      }
 	    addend -= SYM_VAL (sda);
 
-	    name = bfd_get_section_name (abfd, sec->output_section);
+	    name = bfd_get_section_name (output_bfd, sec->output_section);
 	    if (! (CONST_STRNEQ (name, ".sdata2")
 		   || CONST_STRNEQ (name, ".sbss2")))
 	      {
@@ -7931,7 +7934,7 @@ ppc_elf_relocate_section (bfd *output_bfd,
 		break;
 	      }
 
-	    name = bfd_get_section_name (abfd, sec->output_section);
+	    name = bfd_get_section_name (output_bfd, sec->output_section);
 	    if (((CONST_STRNEQ (name, ".sdata")
 		  && (name[6] == 0 || name[6] == '.'))
 		 || (CONST_STRNEQ (name, ".sbss")
