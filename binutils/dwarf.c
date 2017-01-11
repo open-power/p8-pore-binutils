@@ -193,7 +193,7 @@ read_leb128 (unsigned char *data, unsigned int *length_return, int sign)
     *length_return = num_read;
 
   if (sign && (shift < 8 * sizeof (result)) && (byte & 0x40))
-    result |= -1L << shift;
+    result |= -((dwarf_vma) 1 << shift);
 
   return result;
 }
